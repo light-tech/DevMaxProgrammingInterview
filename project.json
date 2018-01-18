@@ -1,0 +1,23 @@
+{
+"version":1,
+"name":"Programming Interview",
+"build_commands": {
+	"InterpretCC++" : {
+		"action":"interpret",
+		"args":["-fms-extensions", "-fms-compatibility", "-fms-compatibility-version=19.10.25017", "-x", "c++", "-std=c++14"],
+		"unused_args":["-fdelayed-template-parsing","-fcxx-exceptions","-fexceptions"],
+		"sys_include_dir":["ucrt", "msvc"]
+	}
+},
+"build_definitions": [
+	{
+		"name":"Test SMS record",
+		"build_steps": [
+			{
+				"command":"InterpretCC++",
+				"inputs":["sms.c"]
+			}
+		]
+	}
+]
+}
