@@ -4,8 +4,8 @@
 "build_commands": {
 	"InterpretCC++" : {
 		"action":"interpret",
-		"args":["-fms-extensions", "-fms-compatibility", "-fms-compatibility-version=19.10.25017", "-x", "c++", "-std=c++14"],
-		"unused_args":["-fdelayed-template-parsing","-fcxx-exceptions","-fexceptions"],
+		"args":["-x", "c++", "-std=c++14", "-D", "_DEVMAX_INTERPRETER_"],
+		"unused_args":["-fms-extensions", "-fms-compatibility", "-fms-compatibility-version=19.10.25017", "-fdelayed-template-parsing","-fcxx-exceptions","-fexceptions"],
 		"sys_include_dir":["ucrt", "msvc"]
 	}
 },
@@ -15,7 +15,7 @@
 		"build_steps": [
 			{
 				"command":"InterpretCC++",
-				"inputs":["sms.c"]
+				"inputs":["sms.cpp"]
 			}
 		]
 	}
