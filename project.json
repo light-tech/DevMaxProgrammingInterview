@@ -2,10 +2,20 @@
 "version":1,
 "name":"Programming Interview",
 "build_commands": {
+	"CompileC++" : {
+		"action":"compile",
+		"args":["-fms-extensions", "-fms-compatibility", "-x", "c++", "-std=c++14", "-w"],
+		"sys_include_dir":["ucrt", "msvc"]
+	},
+	"MakeExe" : {
+		"action":"link",
+		"args":["/defaultlib:msvcrt.lib", "/subsystem:Console"],
+		"sys_lib_dir":["vc", "winsdk"]
+	},
 	"InterpretCC++" : {
 		"action":"interpret",
 		"args":["-x", "c++", "-std=c++14", "-D", "_DEVMAX_INTERPRETER_"],
-		"unused_args":["-fms-extensions", "-fms-compatibility", "-fms-compatibility-version=19.10.25017", "-fdelayed-template-parsing","-fcxx-exceptions","-fexceptions"],
+		"unused_args":["-fms-compatibility-version=19.10.25017", "-fdelayed-template-parsing","-fcxx-exceptions","-fexceptions"],
 		"sys_include_dir":["ucrt", "msvc"]
 	}
 },
@@ -16,6 +26,20 @@
 			{
 				"command":"InterpretCC++",
 				"inputs":["sms.cpp"]
+			}
+		]
+	},
+	{
+		"name":"Build executable",
+		"build_steps": [
+			{
+				"command":"CompileC++",
+				"inputs":["sms.cpp"]
+			},
+			{
+				"command":"MakeExe",
+				"inputs":["sms.o"],
+				"output":"sms.exe"
 			}
 		]
 	}

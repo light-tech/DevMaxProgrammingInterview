@@ -39,6 +39,19 @@ public:
 		dateStr[dateBufLength] = '\0';
 	}
 
+#ifdef _DEVMAX_INTERPRETER_
+	// Unfortunately, our C++ interpreter can't handle `new` so I need to use malloc
+	static SMSDateRecord *Make(bool act, char* dateBuf, int dateBufLength)
+	{
+		SMSDateRecord* r = (SMSDateRecord*)malloc(sizeof(SMSDateRecord));
+		r->isActivationDate = act;
+		memcpy(r->dateStr, dateBuf, dateBufLength);
+		r->dateStr[dateBufLength] = '\0';
+
+		return r;
+	}
+#endif
+
 	// Date string
 	char dateStr[9];
 
@@ -50,17 +63,6 @@ public:
 	LTTree<char, SMSDateRecord*> *otherDate;
 };
 
-// Unfortunately, our C++ interpreter can't handle `new` so I need to use malloc
-SMSDateRecord *MakeSMSDateRecord(bool act, char* dateBuf, int dateBufLength)
-{
-	SMSDateRecord* r = (SMSDateRecord*)malloc(sizeof(SMSDateRecord));
-	r->isActivationDate = act;
-	memcpy(r->dateStr, dateBuf, dateBufLength);
-	r->dateStr[dateBufLength] = '\0';
-
-	return r;
-}
-
 class PhoneNumberInfo
 {
 public:
@@ -70,6 +72,18 @@ public:
 		phoneNumber[length] = '\0';
 		activationTree = default_create_node<char, SMSDateRecord*>(nullptr, 0);
 	}
+
+#ifdef _DEVMAX_INTERPRETER_
+	static PhoneNumberInfo *Make(char *numstr, int length)
+	{
+		PhoneNumberInfo* r = (PhoneNumberInfo*)malloc(sizeof(PhoneNumberInfo));
+		memcpy(r->phoneNumber, numstr, length);
+		r->phoneNumber[length] = '\0';
+		r->activationTree = default_create_node<char, SMSDateRecord*>(nullptr, 0);
+
+		return r;
+	}
+#endif
 
 	// Add an activation/deactivation date from file
 	LTTree<char, SMSDateRecord*> *AddDate(FILE *file, bool act)
@@ -106,8 +120,12 @@ public:
 		}
 		else
 		{
+#ifdef _DEVMAX_INTERPRETER_
 			// Activation date has never appeared, so we make new record
-			activationDateNode->data = MakeSMSDateRecord(act, dateBuf, dateBufLength);
+			activationDateNode->data = SMSDateRecord::Make(act, dateBuf, dateBufLength);
+#else
+			activationDateNode->data = new SMSDateRecord(act, dateBuf, dateBufLength);
+#endif
 		}
 
 		return activationDateNode;
@@ -120,16 +138,6 @@ public:
 	// Note that the root node is the `present`
 	LTTree<char, SMSDateRecord*> *activationTree;
 };
-
-PhoneNumberInfo *MakePhoneNumberInfo(char *numstr, int length)
-{
-	PhoneNumberInfo* r = (PhoneNumberInfo*)malloc(sizeof(PhoneNumberInfo));
-	memcpy(r->phoneNumber, numstr, length);
-	r->phoneNumber[length] = '\0';
-	r->activationTree = default_create_node<char, SMSDateRecord*>(nullptr, 0);
-
-	return r;
-}
 
 int main(int argc, const char **argv)
 {
@@ -173,7 +181,11 @@ int main(int argc, const char **argv)
 		numBuf[numBufLength] = '\0';
 		auto numInfo = phoneNode->data;
 		if (numInfo == nullptr)
-			phoneNode->data = numInfo = MakePhoneNumberInfo(numBuf, numBufLength);
+#ifdef _DEVMAX_INTERPRETER_
+			phoneNode->data = numInfo = PhoneNumberInfo::Make(numBuf, numBufLength);
+#else
+			phoneNode->data = numInfo = new PhoneNumberInfo(numBuf, numBufLength);
+#endif
 
 		auto activationDateNode = numInfo->AddDate(file, true);
 		auto deactivationDateNode = numInfo->AddDate(file, false);
@@ -189,9 +201,8 @@ int main(int argc, const char **argv)
 	{
 		if (node->data != nullptr)
 		{
-			PrintString("Phone number: ");
 			PrintString(node->data->phoneNumber);
-			PrintString(" ");
+			PrintString(" -> ");
 
 			auto actTree = node->data->activationTree;
 			if (actTree->data != nullptr)
@@ -221,7 +232,7 @@ int main(int argc, const char **argv)
 				},
 					[](LTTree<char, SMSDateRecord*> *node, SMSDateRecord *&latest) { /* no op */ },
 					latest
-					);
+				);
 				PrintString(latest->otherDate->data->dateStr);
 			}
 
@@ -232,7 +243,7 @@ int main(int argc, const char **argv)
 	},
 		[](LTTree<char, PhoneNumberInfo*> *node, int &state) { /* no op */ },
 		dummy
-		);
+	);
 
 	return 0;
 }
